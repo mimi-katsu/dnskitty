@@ -2,7 +2,7 @@ import asyncio
 import argparse
 import base64
 # parser = parser.parse_args
-from dns import DNSRequest
+from dns import DNS
 
 parser = argparse.ArgumentParser(description='Start a DNS server for extracting secret messages from DNS requests')
 
@@ -17,7 +17,7 @@ class DNSKitty:
         self.stopped = False
         self.args = args
 
-    class DNS:
+    class DNSHandler:
         def __init__(self, args):
             self.transport = None
             self.args = args
@@ -26,15 +26,16 @@ class DNSKitty:
             self.transport = transport
 
         def datagram_received(self, data, address):
-            self.parse_data(data, address, self.args)
-            self.transport.sendto(data, address)
+            dns_obj = self.parse_data(data, address, self.args)
+            self.transport.sendto(dns_obj.response(123), address)
 
         def get_message(self, request):
             message = request.question.qname.split('.')[:-2]
             return message
 
         def parse_data(self, data, address, args):
-            request = DNSRequest(data)
+            request = DNS()
+            request.parse_bytes(data)
             msg = ""
             if args.decode:
                 for m in self.get_message(request):
@@ -44,12 +45,14 @@ class DNSKitty:
                 for m in self.get_message(request):
                     msg += m
             print(f'Message recieved from {address[0]}: {msg}')
-
+            # print(''.join(format(b, '08b') for b in request.question.qtype))
+            # print(''.join(format(b, '08b') for b in request.question.qclass))
+            return request
     async def start_server(self, address:str, port:int):
         try:
             loop = asyncio.get_running_loop()
             transport, protocol = await loop.create_datagram_endpoint(
-                lambda: self.DNS(self.args),
+                lambda: self.DNSHandler(self.args),
                 local_addr = (self.args.i, self.args.p)
                 )
             print(f'Listening on {self.args.i}:{self.args.p}')
