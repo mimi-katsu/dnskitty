@@ -19,6 +19,7 @@ class DNSKitty:
         def datagram_received(self, data, address):
             self.parse_data(data, address)
             self.transport.sendto(data, address)
+
         def get_message(self, request):
             message = request.question.qname.split('.')[:-2]
             return message
