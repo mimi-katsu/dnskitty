@@ -15,7 +15,6 @@ class DNS:
         self.header.parse(bytes_)
         self.question = self.Question()
         self.question.parse(bytes_)
-        self.response(123)
 
     class Header:
         def __init__(self):

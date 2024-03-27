@@ -26,8 +26,8 @@ class DNSKitty:
             self.transport = transport
 
         def datagram_received(self, data, address):
-            dns_obj = self.parse_data(data, address, self.args)
-            self.transport.sendto(dns_obj.response(123), address)
+            self.parse_data(data, address, self.args)
+            self.transport.sendto(data, address)
 
         def get_message(self, request):
             message = request.question.qname.split('.')[:-2]
@@ -45,9 +45,7 @@ class DNSKitty:
                 for m in self.get_message(request):
                     msg += m
             print(f'Message recieved from {address[0]}: {msg}')
-            # print(''.join(format(b, '08b') for b in request.question.qtype))
-            # print(''.join(format(b, '08b') for b in request.question.qclass))
-            return request
+
     async def start_server(self, address:str, port:int):
         try:
             loop = asyncio.get_running_loop()
