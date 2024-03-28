@@ -26,18 +26,12 @@ class DNSKitty:
             self.transport = transport
 
         def datagram_received(self, data, address):
-            self.parse_data(data, address, self.args)
-            self.transport.sendto(data, address)
-
-        def get_message(self, request):
-            message = request.question.qname.split('.')[:-2]
-            return message
-
-        def parse_data(self, data, address, args):
-            request = DNS()
-            request.parse_bytes(data)
+            request = DNS(data)
+            #return 127.0.0.1 for testing purposes
+            ip_addr = '127.0.0.1'
+            response = request.make_response(ip_addr)
             msg = ""
-            if args.decode:
+            if self.args.decode:
                 for m in self.get_message(request):
                     msg += base64.b64decode(m).decode().strip()
                     
@@ -45,6 +39,11 @@ class DNSKitty:
                 for m in self.get_message(request):
                     msg += m
             print(f'Message recieved from {address[0]}: {msg}')
+            self.transport.sendto(response.bytes, address)
+
+        def get_message(self, request):
+            message = request.question.qname.split('.')[:-2]
+            return message
 
     async def start_server(self, address:str, port:int):
         try:

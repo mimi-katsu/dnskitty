@@ -1,7 +1,13 @@
-a = 0b1110
 
-print((a >> 0) & 0b1)
+domain = 'www.test.com'
 
+parts = domain.split('.')
 
-print(bin(0b1110))
-print(0b1111 + 0b1111)
+bytes_ = b''
+
+for p in parts:
+    length = len(p).to_bytes(1,'big')
+    bytes_ += length
+    bytes_ += p.encode()
+
+print(bytes_)
